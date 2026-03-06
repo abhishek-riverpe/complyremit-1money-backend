@@ -19,11 +19,3 @@ export const getUser = async (
   const user = await userService.getUser((req as AuthRequest).user.clerkUserId);
   APIResponse.success(res, 'User fetched successfully', user);
 };
-
-export const deleteUser = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  await userService.deleteUser((req as AuthRequest).user.clerkUserId);
-  APIResponse.success(res, 'User deleted successfully');
-};

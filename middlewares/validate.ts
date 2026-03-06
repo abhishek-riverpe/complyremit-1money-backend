@@ -17,7 +17,9 @@ const validate =
       return next(new AppError(400, message));
     }
 
-    req[source] = value;
+    if (source !== 'query') {
+      req[source] = value;
+    }
     next();
   };
 

@@ -16,11 +16,6 @@ export const getUser = async (clerkUserId: string) => {
   return getVerifiedUser(clerkUserId);
 };
 
-export const deleteUser = async (clerkUserId: string) => {
-  await getVerifiedUser(clerkUserId);
-  return userRepository.deleteUser(clerkUserId);
-};
-
 export const linkPaymentAccount = async (
   clerkUserId: string,
   customerId: string,

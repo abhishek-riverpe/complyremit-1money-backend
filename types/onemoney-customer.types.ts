@@ -5,15 +5,15 @@ export interface OneMoneyAddress {
   state: string;
   country: string;
   subdivision?: string;
-  postal_code: string;
+  postal_code?: string;
 }
 
 export interface IdentifyingInfo {
   type: string;
   issuing_country: string;
   national_identity_number: string;
-  image_front?: string;
-  image_back?: string;
+  image_front: string;
+  image_back: string;
 }
 
 export interface AssociatedPerson {
@@ -33,8 +33,8 @@ export interface AssociatedPerson {
   country_of_tax: string;
   tax_type: string;
   tax_id: string;
-  poa?: string;
-  poa_type?: string;
+  poa: string;
+  poa_type: string;
 }
 
 export interface BusinessDocument {
@@ -49,13 +49,11 @@ export interface CreateCustomerRequest {
   business_description: string;
   business_type: string;
   business_industry: string;
-  business_registration_number: string;
+  business_registration_number?: string;
   date_of_incorporation: string;
-  incorporation_country: string;
-  incorporation_state: string;
   registered_address: OneMoneyAddress;
   primary_website?: string;
-  publicly_traded?: boolean;
+  publicly_traded: boolean;
   tax_id: string;
   tax_type: string;
   tax_country: string;
@@ -65,9 +63,9 @@ export interface CreateCustomerRequest {
   account_purpose: string;
   source_of_funds: string[];
   source_of_wealth: string[];
-  estimated_annual_revenue_usd?: string;
-  expected_monthly_fiat_deposits?: string;
-  expected_monthly_fiat_withdrawals?: string;
+  estimated_annual_revenue_usd: string;
+  expected_monthly_fiat_deposits: string;
+  expected_monthly_fiat_withdrawals: string;
 }
 
 export interface UpdateCustomerRequest {
@@ -78,8 +76,6 @@ export interface UpdateCustomerRequest {
   business_industry?: string;
   business_registration_number?: string;
   date_of_incorporation?: string;
-  incorporation_country?: string;
-  incorporation_state?: string;
   registered_address?: OneMoneyAddress;
   primary_website?: string;
   publicly_traded?: boolean;
@@ -97,8 +93,6 @@ export interface CustomerResponse {
   business_industry: string;
   business_registration_number: string;
   date_of_incorporation: string;
-  incorporation_country: string;
-  incorporation_state: string;
   registered_address: OneMoneyAddress;
   primary_website?: string;
   publicly_traded: boolean;

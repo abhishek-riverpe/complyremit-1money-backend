@@ -3,6 +3,9 @@ import type { AuthRequest } from '../middlewares/auth';
 import APIResponse from '../lib/APIResponse';
 import AppError from '../lib/AppError';
 import { oneMoneyCustomerService as customerService, userService } from '../services';
+import type { CreateCustomerRequest } from '../types/onemoney-customer.types';
+import { persistBusinessData } from '../services/business-persistence.service';
+import { convertFilesToBase64 } from '../services/file-conversion.service';
 
 export const createCustomer = async (
   req: Request,
@@ -15,11 +18,19 @@ export const createCustomer = async (
   }
 
   const idempotencyKey = req.headers['idempotency-key'] as string;
-  const result = await customerService.createCustomer(req.body, idempotencyKey) as {
+  const body = req.body as CreateCustomerRequest;
+
+  // Convert R2 file keys to base64 for OneMoney API
+  const apiBody = await convertFilesToBase64(body);
+
+  // Create customer in 1Money API first (fail-fast before any DB writes)
+  const result = await customerService.createCustomer(apiBody, idempotencyKey) as {
     customer_id: string;
     status: string;
   };
 
+  // Only persist to DB after API succeeds
+  await persistBusinessData(authReq.dbUser!.id, authReq.user.clerkUserId, body);
   await userService.linkPaymentAccount(authReq.user.clerkUserId, result.customer_id, result.status);
 
   APIResponse.created(res, 'Customer created successfully', result);

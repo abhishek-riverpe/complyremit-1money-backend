@@ -11,7 +11,6 @@ const router = Router();
 // User profile routes
 router.post('/', validate(createUserSchema), userController.createUser);
 router.get('/business', userController.getUser);
-router.delete('/business', userController.deleteUser);
 
 // KYB routes (need dbUser; GET/PUT also need customerId)
 router.post('/business/kyb', dbUser, requireIdempotencyKey, validate(createCustomerSchema), kybController.createCustomer);
