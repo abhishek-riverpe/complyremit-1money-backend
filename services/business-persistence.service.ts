@@ -11,6 +11,7 @@ export const persistBusinessData = async (
   userId: string,
   clerkUserId: string,
   body: CreateCustomerRequest,
+  paymentAccount?: { oneMoneyCustomerId: string; oneMoneyKybStatus: string },
 ): Promise<void> => {
   const businessData: UpdateBusinessData = {
     businessLegalName: body.business_legal_name,
@@ -80,10 +81,10 @@ export const persistBusinessData = async (
   }));
 
   await prisma.$transaction(async (tx) => {
-    // Update user with business fields
+    // Update user with business fields (and payment account if provided)
     await tx.user.update({
       where: { clerkUserId },
-      data: businessData,
+      data: { ...businessData, ...paymentAccount },
     });
 
     // Create associated persons with nested identifying documents

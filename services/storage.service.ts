@@ -46,6 +46,20 @@ export const deleteObjects = async (keys: string[]): Promise<void> => {
   await r2Client.send(command);
 };
 
+export const uploadObject = async (
+  key: string,
+  body: Buffer,
+  contentType: string,
+): Promise<void> => {
+  const command = new PutObjectCommand({
+    Bucket: R2_BUCKET_NAME,
+    Key: key,
+    ContentType: contentType,
+    Body: body,
+  });
+  await r2Client.send(command);
+};
+
 export const fetchAsBase64 = async (key: string): Promise<string> => {
   const command = new GetObjectCommand({
     Bucket: R2_BUCKET_NAME,
@@ -53,8 +67,25 @@ export const fetchAsBase64 = async (key: string): Promise<string> => {
   });
   const response = await r2Client.send(command);
   const bytes = await response.Body!.transformToByteArray();
-  return Buffer.from(bytes).toString('base64');
+  const base64 = Buffer.from(bytes).toString('base64');
+
+  const contentType = response.ContentType ?? mimeFromKey(key);
+  return `data:${contentType};base64,${base64}`;
 };
+
+const MIME_TYPES: Record<string, string> = {
+  '.pdf': 'application/pdf',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+};
+
+function mimeFromKey(key: string): string {
+  const ext = key.substring(key.lastIndexOf('.')).toLowerCase();
+  return MIME_TYPES[ext] ?? 'application/octet-stream';
+}
 
 type DocumentCategory = 'business_document' | 'id_front' | 'id_back' | 'poa';
 

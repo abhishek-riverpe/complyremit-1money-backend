@@ -4,3 +4,4 @@ export * as depositInstructionsController from './deposit-instructions.controlle
 export * as simulateTransactionsController from './simulate-transactions.controller';
 export * as storageController from './storage.controller';
 export * as autoConversionController from './auto-conversion.controller';
+export * as activityLogController from './activity-log.controller';

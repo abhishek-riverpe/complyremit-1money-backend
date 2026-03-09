@@ -111,6 +111,7 @@ export interface CreateTosLinkRequest {
 }
 
 export interface CreateTosLinkResponse {
+  url: string;
   session_token: string;
 }
 

@@ -46,6 +46,7 @@ class OneMoneyClient {
     }
 
     const url = `${this.baseUrl}${path}`;
+    logger.info('1Money API request', { method, url });
 
     try {
       const response = await axios({
@@ -54,7 +55,7 @@ class OneMoneyClient {
         headers,
         data: options?.body,
         params: options?.query,
-        timeout: 15000,
+        timeout: 120000,
       });
 
       return response.data as T;
@@ -67,7 +68,10 @@ class OneMoneyClient {
           detail: errorBody?.detail,
           instance: errorBody?.instance,
           method,
+          url,
           path,
+          responseUrl: error.response.config?.url,
+          responseData: JSON.stringify(error.response.data),
         });
         const status = error.response.status >= 400 && error.response.status < 500 ? error.response.status : 502;
         throw new AppError(status, 'Payment request failed. Please try again later.');

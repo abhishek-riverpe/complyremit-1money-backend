@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import logger from './lib/logger';
 import auth from './middlewares/auth';
+
 import { globalLimiter } from './middlewares/rate-limit';
 import errorHandler from './middlewares/error';
 import router from './routes';
