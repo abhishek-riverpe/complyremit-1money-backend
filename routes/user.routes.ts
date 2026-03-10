@@ -5,6 +5,7 @@ import requireIdempotencyKey from '../middlewares/require-idempotency-key';
 import dbUser from '../middlewares/db-user';
 import requireCustomer from '../middlewares/require-customer';
 import { createUserSchema, createCustomerSchema, updateCustomerSchema, createTosLinkSchema } from '../schemas';
+import associatedPersonRoutes from './associated-person.routes';
 
 const router = Router();
 
@@ -16,6 +17,9 @@ router.get('/business', userController.getUser);
 router.post('/business/kyb', dbUser, requireIdempotencyKey, validate(createCustomerSchema), kybController.createCustomer);
 router.get('/business/kyb', dbUser, requireCustomer, kybController.getCustomer);
 router.put('/business/kyb', dbUser, requireCustomer, requireIdempotencyKey, validate(updateCustomerSchema), kybController.updateCustomer);
+
+// Associated person routes
+router.use('/business/kyb/associated-persons', dbUser, requireCustomer, associatedPersonRoutes);
 
 // TOS routes (1Money TOS signing - part of KYB flow, need dbUser)
 router.post('/business/kyb/tos/link', dbUser, requireIdempotencyKey, validate(createTosLinkSchema), kybController.createTosLink);

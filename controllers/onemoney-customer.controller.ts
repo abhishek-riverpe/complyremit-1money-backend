@@ -3,8 +3,11 @@ import type { AuthRequest } from '../middlewares/auth';
 import APIResponse from '../lib/APIResponse';
 import AppError from '../lib/AppError';
 import { oneMoneyCustomerService as customerService, activityLogService } from '../services';
-import type { CreateCustomerRequest, CustomerResponse } from '../types/onemoney-customer.types';
+import type { CreateCustomerRequest, UpdateCustomerRequest, CustomerResponse } from '../types/onemoney-customer.types';
 import { persistBusinessData } from '../services/business-persistence.service';
+import userRepository from '../repositories/user.repository';
+import type { UpdateBusinessData } from '../types/user.types';
+import type { BusinessType } from '../generated/prisma/client';
 import { convertFilesToBase64 } from '../services/file-conversion.service';
 import logger from '../lib/logger';
 import { ActivityAction, ActivityCategory } from '../types/activity-log.types';
@@ -74,11 +77,38 @@ export const updateCustomer = async (
   }
 
   const idempotencyKey = req.headers['idempotency-key'] as string;
+  const body = req.body as UpdateCustomerRequest;
   const result = await customerService.updateCustomer(
     authReq.customerId!,
-    req.body,
+    body,
     idempotencyKey,
   );
+
+  // Persist updated fields to local DB
+  const dbUpdate: UpdateBusinessData = {};
+  if (body.business_legal_name !== undefined) dbUpdate.businessLegalName = body.business_legal_name;
+  if (body.business_description !== undefined) dbUpdate.businessDescription = body.business_description;
+  if (body.business_type !== undefined) dbUpdate.businessType = body.business_type as BusinessType;
+  if (body.business_industry !== undefined) dbUpdate.businessIndustry = body.business_industry;
+  if (body.business_registration_number !== undefined) dbUpdate.businessRegistrationNumber = body.business_registration_number;
+  if (body.date_of_incorporation !== undefined) dbUpdate.dateOfIncorporation = body.date_of_incorporation;
+  if (body.primary_website !== undefined) dbUpdate.primaryWebsite = body.primary_website;
+  if (body.publicly_traded !== undefined) dbUpdate.publiclyTraded = body.publicly_traded;
+  if (body.tax_id !== undefined) dbUpdate.taxId = body.tax_id;
+  if (body.tax_type !== undefined) dbUpdate.taxType = body.tax_type;
+  if (body.tax_country !== undefined) dbUpdate.taxCountry = body.tax_country;
+  if (body.registered_address) {
+    dbUpdate.registeredAddressStreetLine1 = body.registered_address.street_line_1;
+    dbUpdate.registeredAddressStreetLine2 = body.registered_address.street_line_2;
+    dbUpdate.registeredAddressCity = body.registered_address.city;
+    dbUpdate.registeredAddressState = body.registered_address.state;
+    dbUpdate.registeredAddressCountry = body.registered_address.country;
+    dbUpdate.registeredAddressSubdivision = body.registered_address.subdivision;
+    dbUpdate.registeredAddressPostalCode = body.registered_address.postal_code;
+  }
+  if (Object.keys(dbUpdate).length > 0) {
+    await userRepository.updateBusinessData(authReq.user.clerkUserId, dbUpdate);
+  }
 
   activityLogService.log({
     context: activityLogService.buildContext(authReq),
