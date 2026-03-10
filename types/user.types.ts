@@ -39,6 +39,7 @@ export interface UpdateBusinessData {
 }
 
 export interface CreateAssociatedPersonData {
+  oneMoneyAssociatedPersonId?: string;
   firstName: string;
   middleName?: string;
   lastName: string;

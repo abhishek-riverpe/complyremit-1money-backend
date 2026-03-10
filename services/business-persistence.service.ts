@@ -12,6 +12,7 @@ export const persistBusinessData = async (
   clerkUserId: string,
   body: CreateCustomerRequest,
   paymentAccount?: { oneMoneyCustomerId: string; oneMoneyKybStatus: string },
+  responseAssociatedPersons?: Array<{ associated_person_id: string }>,
 ): Promise<void> => {
   const businessData: UpdateBusinessData = {
     businessLegalName: body.business_legal_name,
@@ -41,7 +42,8 @@ export const persistBusinessData = async (
     signedAgreementId: body.signed_agreement_id,
   };
 
-  const persons: CreateAssociatedPersonData[] = body.associated_persons.map((p) => ({
+  const persons: CreateAssociatedPersonData[] = body.associated_persons.map((p, i) => ({
+    oneMoneyAssociatedPersonId: responseAssociatedPersons?.[i]?.associated_person_id,
     firstName: p.first_name,
     middleName: p.middle_name,
     lastName: p.last_name,

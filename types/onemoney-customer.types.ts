@@ -103,6 +103,12 @@ export interface CustomerResponse {
   submitted_at?: string;
   created_at: string;
   updated_at: string;
+  associated_persons: Array<{
+    associated_person_id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+  }>;
 }
 
 // TOS Types

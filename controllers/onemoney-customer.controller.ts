@@ -3,7 +3,7 @@ import type { AuthRequest } from '../middlewares/auth';
 import APIResponse from '../lib/APIResponse';
 import AppError from '../lib/AppError';
 import { oneMoneyCustomerService as customerService, activityLogService } from '../services';
-import type { CreateCustomerRequest } from '../types/onemoney-customer.types';
+import type { CreateCustomerRequest, CustomerResponse } from '../types/onemoney-customer.types';
 import { persistBusinessData } from '../services/business-persistence.service';
 import { convertFilesToBase64 } from '../services/file-conversion.service';
 import logger from '../lib/logger';
@@ -26,16 +26,13 @@ export const createCustomer = async (
   const apiBody = await convertFilesToBase64(body);
 
   // Create customer in 1Money API first (fail-fast before any DB writes)
-  const result = await customerService.createCustomer(apiBody, idempotencyKey) as {
-    customer_id: string;
-    status: string;
-  };
+  const result = await customerService.createCustomer(apiBody, idempotencyKey) as CustomerResponse;
 
   // Only persist to DB after API succeeds — single atomic transaction
   await persistBusinessData(authReq.dbUser!.id, authReq.user.clerkUserId, body, {
     oneMoneyCustomerId: result.customer_id,
     oneMoneyKybStatus: result.status,
-  });
+  }, result.associated_persons);
 
   activityLogService.log({
     context: activityLogService.buildContext(authReq),
@@ -70,6 +67,12 @@ export const updateCustomer = async (
   res: Response,
 ): Promise<void> => {
   const authReq = req as AuthRequest;
+
+  const kybStatus = authReq.dbUser?.oneMoneyKybStatus;
+  if (kybStatus && !['draft', 'action_required', 'rejected'].includes(kybStatus)) {
+    throw new AppError(409, 'KYB cannot be edited in its current status');
+  }
+
   const idempotencyKey = req.headers['idempotency-key'] as string;
   const result = await customerService.updateCustomer(
     authReq.customerId!,

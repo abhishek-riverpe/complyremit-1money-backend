@@ -74,7 +74,10 @@ class OneMoneyClient {
           responseData: JSON.stringify(error.response.data),
         });
         const status = error.response.status >= 400 && error.response.status < 500 ? error.response.status : 502;
-        throw new AppError(status, 'Payment request failed. Please try again later.');
+        const message = errorBody?.detail && status < 500
+          ? errorBody.detail
+          : 'Payment request failed. Please try again later.';
+        throw new AppError(status, message);
       }
       throw error;
     }

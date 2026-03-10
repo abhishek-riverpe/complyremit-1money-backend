@@ -156,6 +156,9 @@ model AssociatedPerson {
   birthDate          String  @map("birth_date")
   primaryNationality String  @map("primary_nationality")
 
+  // OneMoney mapping
+  oneMoneyAssociatedPersonId String? @unique @map("onemoney_associated_person_id")
+
   // Roles & ownership
   hasOwnership        Boolean  @map("has_ownership")
   ownershipPercentage Float?   @map("ownership_percentage")
