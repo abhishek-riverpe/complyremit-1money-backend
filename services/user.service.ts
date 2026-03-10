@@ -9,7 +9,18 @@ export const createUser = async (data: CreateUserData) => {
     throw new AppError(409, "User already exists.");
   }
 
-  return userRepository.createUser(data);
+  try {
+    return await userRepository.createUser(data);
+  } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      'code' in error &&
+      (error as { code: string }).code === 'P2002'
+    ) {
+      throw new AppError(409, "User already exists.");
+    }
+    throw error;
+  }
 };
 
 export const getUser = async (clerkUserId: string) => {

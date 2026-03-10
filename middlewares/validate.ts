@@ -13,7 +13,10 @@ const validate =
     });
 
     if (error) {
-      const message = error.details.map((d) => d.message).join(', ');
+      const message = error.details.map((d) => {
+        const path = d.path.join('.');
+        return path ? `${path}: ${d.message}` : d.message;
+      }).join(', ');
       return next(new AppError(400, message));
     }
 

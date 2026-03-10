@@ -67,7 +67,26 @@ export const associatedPersonSchema = Joi.object({
   identifying_information: Joi.array().items(identifyingInfoSchema).min(1).required(),
   country_of_tax: Joi.string().length(3).required(),
   tax_type: Joi.string().valid(...TAX_TYPES).required(),
-  tax_id: Joi.string().max(100).required(),
+  tax_id: Joi.string().max(100).required().custom((value, helpers) => {
+    const taxType = helpers.state.ancestors[0].tax_type;
+    if (taxType === 'SSN') {
+      const digits = value.replace(/\D/g, '');
+      if (!/^\d{9}$/.test(digits)) {
+        return helpers.error('any.invalid', { message: 'SSN must contain exactly 9 digits' });
+      }
+      return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+    }
+    if (taxType === 'EIN') {
+      const digits = value.replace(/\D/g, '');
+      if (!/^\d{9}$/.test(digits)) {
+        return helpers.error('any.invalid', { message: 'EIN must contain exactly 9 digits' });
+      }
+      return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+    }
+    return value;
+  }).messages({
+    'any.invalid': '{{#message}}',
+  }),
   poa: Joi.string().required(),
   poa_type: Joi.string().valid(...POA_TYPES).required(),
 });

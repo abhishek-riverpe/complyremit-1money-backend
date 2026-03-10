@@ -110,7 +110,26 @@ export const createCustomerSchema = Joi.object({
   registered_address: addressSchema.required(),
   primary_website: Joi.string().uri().max(500).optional(),
   publicly_traded: Joi.boolean().required(),
-  tax_id: Joi.string().max(100).required(),
+  tax_id: Joi.string().max(100).required().custom((value, helpers) => {
+    const taxType = helpers.state.ancestors[0].tax_type;
+    if (taxType === 'SSN') {
+      const digits = value.replace(/\D/g, '');
+      if (!/^\d{9}$/.test(digits)) {
+        return helpers.error('any.invalid', { message: 'SSN must contain exactly 9 digits' });
+      }
+      return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+    }
+    if (taxType === 'EIN') {
+      const digits = value.replace(/\D/g, '');
+      if (!/^\d{9}$/.test(digits)) {
+        return helpers.error('any.invalid', { message: 'EIN must contain exactly 9 digits' });
+      }
+      return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+    }
+    return value;
+  }).messages({
+    'any.invalid': '{{#message}}',
+  }),
   tax_type: Joi.string().valid(...TAX_TYPES).required(),
   tax_country: Joi.string().length(3).required(),
   signed_agreement_id: Joi.string().uuid().required(),
@@ -135,7 +154,26 @@ export const updateCustomerSchema = Joi.object({
   registered_address: addressSchema.optional(),
   primary_website: Joi.string().uri().max(500).optional(),
   publicly_traded: Joi.boolean().optional(),
-  tax_id: Joi.string().max(100).optional(),
+  tax_id: Joi.string().max(100).optional().custom((value, helpers) => {
+    const taxType = helpers.state.ancestors[0].tax_type;
+    if (taxType === 'SSN') {
+      const digits = value.replace(/\D/g, '');
+      if (!/^\d{9}$/.test(digits)) {
+        return helpers.error('any.invalid', { message: 'SSN must contain exactly 9 digits' });
+      }
+      return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+    }
+    if (taxType === 'EIN') {
+      const digits = value.replace(/\D/g, '');
+      if (!/^\d{9}$/.test(digits)) {
+        return helpers.error('any.invalid', { message: 'EIN must contain exactly 9 digits' });
+      }
+      return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+    }
+    return value;
+  }).messages({
+    'any.invalid': '{{#message}}',
+  }),
   tax_type: Joi.string().valid(...TAX_TYPES).optional(),
   tax_country: Joi.string().length(3).optional(),
 }).options({ stripUnknown: true });
