@@ -24,6 +24,12 @@ app.use(cors({
 
 app.use(
   helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
+    },
     xssFilter: true,
     frameguard: { action: "deny" },
     hsts: {
@@ -37,6 +43,11 @@ app.use(
     referrerPolicy: { policy: "no-referrer" },
   })
 );
+
+app.use((_req, res, next) => {
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  next();
+});
 
 // Global request timeout (30 seconds)
 app.use((req, res, next) => {
@@ -72,6 +83,13 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(globalLimiter);
+
+// Prevent caching of sensitive API responses
+app.use('/api', (_req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  next();
+});
 
 app.use('/api', auth, router);
 app.use(errorHandler);

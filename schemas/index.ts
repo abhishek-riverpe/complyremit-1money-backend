@@ -1,4 +1,3 @@
-export { createUserSchema } from "./user.schema";
 export {
   createCustomerSchema,
   updateCustomerSchema,
@@ -9,3 +8,10 @@ export { simulateTransactionSchema } from "./simulate-transactions.schema";
 export { uploadUrlSchema } from "./storage.schema";
 export { createAutoConversionRuleSchema, listAutoConversionRulesSchema } from "./auto-conversion.schema";
 export { createAssociatedPersonSchema, updateAssociatedPersonSchema } from "./associated-person.schema";
+export {
+  associatedPersonIdParamSchema,
+  sessionTokenParamSchema,
+  ruleIdParamSchema,
+  ruleOrderParamSchema,
+  idempotencyKeyParamSchema,
+} from "./shared";

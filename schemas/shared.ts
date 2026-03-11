@@ -29,6 +29,28 @@ export const POA_TYPES = [
   'other',
 ] as const;
 
+// Path parameter validation schemas
+export const associatedPersonIdParamSchema = Joi.object({
+  associatedPersonId: Joi.string().max(100).pattern(/^[a-zA-Z0-9_\-]+$/).required(),
+});
+
+export const sessionTokenParamSchema = Joi.object({
+  sessionToken: Joi.string().max(200).pattern(/^[a-zA-Z0-9_\-]+$/).required(),
+});
+
+export const ruleIdParamSchema = Joi.object({
+  ruleId: Joi.string().max(100).pattern(/^[a-zA-Z0-9_\-]+$/).required(),
+});
+
+export const ruleOrderParamSchema = Joi.object({
+  ruleId: Joi.string().max(100).pattern(/^[a-zA-Z0-9_\-]+$/).required(),
+  orderId: Joi.string().max(100).pattern(/^[a-zA-Z0-9_\-]+$/).required(),
+});
+
+export const idempotencyKeyParamSchema = Joi.object({
+  idempotencyKey: Joi.string().max(200).pattern(/^[a-zA-Z0-9_\-]+$/).required(),
+});
+
 export const addressSchema = Joi.object({
   street_line_1: Joi.string().max(200).required(),
   street_line_2: Joi.string().max(200).optional(),
