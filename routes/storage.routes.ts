@@ -5,7 +5,14 @@ import validate from '../middlewares/validate';
 import { uploadUrlSchema, downloadUrlSchema } from '../schemas/storage.schema';
 import { uploadLimiter } from '../middlewares/rate-limit';
 
-const ALLOWED_CONTENT_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp'];
+const ALLOWED_CONTENT_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'text/csv',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -14,7 +21,7 @@ const upload = multer({
     if (ALLOWED_CONTENT_TYPES.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('File type not allowed. Only PDF, PNG, JPEG, and WebP files are accepted.'));
+      cb(new Error('File type not allowed. Only PDF, JPEG, PNG, CSV, XLS, and XLSX files are accepted.'));
     }
   },
 });

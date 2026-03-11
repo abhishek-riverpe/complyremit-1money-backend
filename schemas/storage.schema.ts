@@ -1,6 +1,13 @@
 import Joi from 'joi';
 
-const ALLOWED_CONTENT_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp'];
+const ALLOWED_CONTENT_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'text/csv',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
 
 export const uploadUrlSchema = Joi.object({
   fileName: Joi.string().max(255).required(),
