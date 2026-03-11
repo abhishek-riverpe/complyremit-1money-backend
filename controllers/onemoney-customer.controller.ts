@@ -37,7 +37,7 @@ export const createCustomer = async (
     oneMoneyKybStatus: result.status,
   }, result.associated_persons);
 
-  activityLogService.log({
+  await activityLogService.logCritical({
     context: activityLogService.buildContext(authReq),
     action: ActivityAction.KYB_SUBMITTED,
     category: ActivityCategory.KYB,
@@ -153,7 +153,7 @@ export const signTos = async (
   const idempotencyKey = req.headers['idempotency-key'] as string;
   const result = await customerService.signTos(sessionToken, idempotencyKey);
 
-  activityLogService.log({
+  await activityLogService.logCritical({
     context: activityLogService.buildContext(authReq),
     action: ActivityAction.TOS_SIGNED,
     category: ActivityCategory.KYB,

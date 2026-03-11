@@ -3,6 +3,7 @@ import multer from 'multer';
 import * as storageController from '../controllers/storage.controller';
 import validate from '../middlewares/validate';
 import { uploadUrlSchema, downloadUrlSchema } from '../schemas/storage.schema';
+import { uploadLimiter } from '../middlewares/rate-limit';
 
 const ALLOWED_CONTENT_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp'];
 
@@ -20,8 +21,8 @@ const upload = multer({
 
 const router = Router();
 
-router.post('/upload', upload.single('file'), storageController.uploadFile);
-router.post('/upload-url', validate(uploadUrlSchema), storageController.getUploadUrl);
+router.post('/upload', uploadLimiter, upload.single('file'), storageController.uploadFile);
+router.post('/upload-url', uploadLimiter, validate(uploadUrlSchema), storageController.getUploadUrl);
 router.post('/download-url', validate(downloadUrlSchema), storageController.getDownloadUrl);
 
 export default router;

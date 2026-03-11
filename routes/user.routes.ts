@@ -5,16 +5,17 @@ import requireIdempotencyKey from '../middlewares/require-idempotency-key';
 import dbUser from '../middlewares/db-user';
 import requireCustomer from '../middlewares/require-customer';
 import { createUserSchema, createCustomerSchema, updateCustomerSchema, createTosLinkSchema } from '../schemas';
+import { kybLimiter } from '../middlewares/rate-limit';
 import associatedPersonRoutes from './associated-person.routes';
 
 const router = Router();
 
 // User profile routes
 router.post('/', validate(createUserSchema), userController.createUser);
-router.get('/business', userController.getUser);
+router.get('/business', dbUser, userController.getUser);
 
 // KYB routes (need dbUser; GET/PUT also need customerId)
-router.post('/business/kyb', dbUser, requireIdempotencyKey, validate(createCustomerSchema), kybController.createCustomer);
+router.post('/business/kyb', dbUser, kybLimiter, requireIdempotencyKey, validate(createCustomerSchema), kybController.createCustomer);
 router.get('/business/kyb', dbUser, requireCustomer, kybController.getCustomer);
 router.put('/business/kyb', dbUser, requireCustomer, requireIdempotencyKey, validate(updateCustomerSchema), kybController.updateCustomer);
 

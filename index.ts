@@ -76,6 +76,23 @@ app.use(globalLimiter);
 app.use('/api', auth, router);
 app.use(errorHandler);
 
+const requiredEnvVars = [
+  'ONEMONEY_API_BASE_URL',
+  'ONEMONEY_BEARER_TOKEN',
+  'CLERK_SECRET_KEY',
+  'R2_ACCOUNT_ID',
+  'R2_ACCESS_KEY_ID',
+  'R2_SECRET_ACCESS_KEY',
+  'R2_BUCKET_NAME',
+  'FRONTEND_URL',
+];
+
+for (const key of requiredEnvVars) {
+  if (!process.env[key]) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+}
+
 const port = process.env.PORT || 5000;
 
 const server = app.listen(port, () => logger.info(`Server running on port ${port}`));

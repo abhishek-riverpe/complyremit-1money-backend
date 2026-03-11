@@ -73,7 +73,7 @@ export const createAssociatedPerson = async (
   const dbData = mapPersonToDbData(body, result.associated_person_id);
   await associatedPersonRepository.createWithDocuments(authReq.dbUser!.id, dbData);
 
-  activityLogService.log({
+  await activityLogService.logCritical({
     context: activityLogService.buildContext(authReq),
     action: ActivityAction.ASSOCIATED_PERSON_CREATED,
     category: ActivityCategory.KYB,
@@ -234,7 +234,7 @@ export const deleteAssociatedPerson = async (
     await associatedPersonRepository.deleteById(localRecord.id);
   }
 
-  activityLogService.log({
+  await activityLogService.logCritical({
     context: activityLogService.buildContext(authReq),
     action: ActivityAction.ASSOCIATED_PERSON_DELETED,
     category: ActivityCategory.KYB,
