@@ -78,7 +78,6 @@ export const updateCustomer = async (
 
   const idempotencyKey = req.headers['idempotency-key'] as string;
   const body = req.body as UpdateCustomerRequest;
-  console.log('updateCustomer - tax_id:', body.tax_id, 'tax_type:', body.tax_type);
   const result = await customerService.updateCustomer(
     authReq.customerId!,
     body,

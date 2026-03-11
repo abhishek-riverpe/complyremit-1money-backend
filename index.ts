@@ -14,7 +14,13 @@ dotenv.config();
 
 const app = express();
 app.set('trust proxy', 1);
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.FRONTEND_URL
+    : true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'x-auth-token', 'idempotency-key'],
+}));
 
 app.use(
   helmet({

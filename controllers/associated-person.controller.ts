@@ -151,6 +151,9 @@ export const updateAssociatedPerson = async (
   );
 
   const localRecord = await associatedPersonRepository.findByOneMoneyId(associatedPersonId);
+  if (localRecord && localRecord.userId !== authReq.dbUser!.id) {
+    throw new AppError(403, 'Access denied to this associated person');
+  }
   if (localRecord) {
     const updateData: Record<string, unknown> = {};
     if (body.first_name !== undefined) updateData.firstName = body.first_name;
@@ -224,6 +227,9 @@ export const deleteAssociatedPerson = async (
   );
 
   const localRecord = await associatedPersonRepository.findByOneMoneyId(associatedPersonId);
+  if (localRecord && localRecord.userId !== authReq.dbUser!.id) {
+    throw new AppError(403, 'Access denied to this associated person');
+  }
   if (localRecord) {
     await associatedPersonRepository.deleteById(localRecord.id);
   }

@@ -57,6 +57,13 @@ export const getDownloadUrl = async (
 ): Promise<void> => {
   const authReq = req as AuthRequest;
   const { objectKey } = req.body;
+
+  const userId = authReq.dbUser!.id;
+  if (!objectKey || !objectKey.startsWith(`${userId}/`)) {
+    APIResponse.error(res, 403, 'Access denied to this file');
+    return;
+  }
+
   const downloadUrl = await storageService.generateDownloadUrl(objectKey);
 
   activityLogService.log({

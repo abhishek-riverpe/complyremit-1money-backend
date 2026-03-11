@@ -46,7 +46,7 @@ class OneMoneyClient {
     }
 
     const url = `${this.baseUrl}${path}`;
-    logger.info('1Money API request', { method, url });
+    logger.info('1Money API request', { method, path: path.replace(/[a-f0-9-]{36}/gi, '[ID]') });
 
     try {
       const response = await axios({
@@ -68,10 +68,7 @@ class OneMoneyClient {
           detail: errorBody?.detail,
           instance: errorBody?.instance,
           method,
-          url,
-          path,
-          responseUrl: error.response.config?.url,
-          responseData: JSON.stringify(error.response.data),
+          path: path.replace(/[a-f0-9-]{36}/gi, '[ID]'),
         });
         const status = error.response.status >= 400 && error.response.status < 500 ? error.response.status : 502;
         const message = errorBody?.detail && status < 500
