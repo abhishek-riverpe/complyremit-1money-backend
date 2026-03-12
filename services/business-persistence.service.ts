@@ -67,13 +67,11 @@ export const persistBusinessData = async (
     residentialAddressCountry: p.residential_address.country,
     residentialAddressSubdivision: p.residential_address.subdivision,
     residentialAddressPostalCode: p.residential_address.postal_code,
-    identifyingDocuments: p.identifying_information.map((doc) => ({
-      type: doc.type,
-      issuingCountry: doc.issuing_country,
-      nationalIdentityNumber: doc.national_identity_number,
-      imageFrontUrl: doc.image_front,
-      imageBackUrl: doc.image_back,
-    })),
+    docType: p.identifying_information[0]?.type,
+    docIssuingCountry: p.identifying_information[0]?.issuing_country,
+    docNationalIdentityNumber: p.identifying_information[0]?.national_identity_number,
+    docImageFrontUrl: p.identifying_information[0]?.image_front,
+    docImageBackUrl: p.identifying_information[0]?.image_back,
   }));
 
   const documents: CreateBusinessDocumentData[] = body.documents.map((d) => ({
@@ -89,17 +87,10 @@ export const persistBusinessData = async (
       data: { ...businessData, ...paymentAccount },
     });
 
-    // Create associated persons with nested identifying documents
+    // Create associated persons
     for (const person of persons) {
-      const { identifyingDocuments, ...personData } = person;
       await tx.associatedPerson.create({
-        data: {
-          ...personData,
-          userId,
-          identifyingDocuments: {
-            create: identifyingDocuments,
-          },
-        },
+        data: { ...person, userId },
       });
     }
 

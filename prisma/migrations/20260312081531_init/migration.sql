@@ -61,6 +61,7 @@ CREATE TABLE "associated_persons" (
     "email" TEXT NOT NULL,
     "birth_date" TEXT NOT NULL,
     "primary_nationality" TEXT NOT NULL,
+    "onemoney_associated_person_id" TEXT,
     "has_ownership" BOOLEAN NOT NULL,
     "ownership_percentage" DOUBLE PRECISION,
     "has_control" BOOLEAN NOT NULL,
@@ -78,6 +79,11 @@ CREATE TABLE "associated_persons" (
     "residential_address_country" TEXT NOT NULL,
     "residential_address_subdivision" TEXT,
     "residential_address_postal_code" TEXT,
+    "doc_type" TEXT,
+    "doc_issuing_country" TEXT,
+    "doc_national_identity_number" TEXT,
+    "doc_image_front_url" TEXT,
+    "doc_image_back_url" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -85,18 +91,18 @@ CREATE TABLE "associated_persons" (
 );
 
 -- CreateTable
-CREATE TABLE "identifying_documents" (
+CREATE TABLE "activity_logs" (
     "id" TEXT NOT NULL,
-    "associated_person_id" TEXT NOT NULL,
-    "type" TEXT NOT NULL,
-    "issuing_country" TEXT NOT NULL,
-    "national_identity_number" TEXT NOT NULL,
-    "image_front_url" TEXT,
-    "image_back_url" TEXT,
+    "user_id" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "category" TEXT NOT NULL,
+    "detail" TEXT,
+    "metadata" JSONB,
+    "ip_address" TEXT,
+    "user_agent" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "identifying_documents_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "activity_logs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -121,11 +127,20 @@ CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 -- CreateIndex
 CREATE UNIQUE INDEX "users_onemoney_customer_id_key" ON "users"("onemoney_customer_id");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "associated_persons_onemoney_associated_person_id_key" ON "associated_persons"("onemoney_associated_person_id");
+
+-- CreateIndex
+CREATE INDEX "activity_logs_user_id_created_at_idx" ON "activity_logs"("user_id", "created_at" DESC);
+
+-- CreateIndex
+CREATE INDEX "activity_logs_user_id_category_idx" ON "activity_logs"("user_id", "category");
+
 -- AddForeignKey
 ALTER TABLE "associated_persons" ADD CONSTRAINT "associated_persons_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "identifying_documents" ADD CONSTRAINT "identifying_documents_associated_person_id_fkey" FOREIGN KEY ("associated_person_id") REFERENCES "associated_persons"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "activity_logs" ADD CONSTRAINT "activity_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "business_documents" ADD CONSTRAINT "business_documents_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

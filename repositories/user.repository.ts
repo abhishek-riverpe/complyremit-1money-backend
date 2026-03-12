@@ -2,9 +2,7 @@ import { prisma } from "../lib/prisma";
 import type { CreateUserData, UpdateUserData, UpdateBusinessData } from "../types/user.types";
 
 const includeRelations = {
-  associatedPersons: {
-    include: { identifyingDocuments: true },
-  },
+  associatedPersons: true,
   documents: true,
 };
 

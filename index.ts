@@ -103,6 +103,7 @@ const requiredEnvVars = [
   'R2_SECRET_ACCESS_KEY',
   'R2_BUCKET_NAME',
   'FRONTEND_URL',
+  'FIELD_ENCRYPTION_KEY',
 ];
 
 for (const key of requiredEnvVars) {
