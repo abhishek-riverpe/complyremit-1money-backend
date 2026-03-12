@@ -1,4 +1,10 @@
 import { oneMoneyClient } from '../lib/onemoney-client';
+import { validateUpstreamResponse } from '../lib/validate-response';
+import {
+  customerResponseSchema,
+  createTosLinkResponseSchema,
+  signTosResponseSchema,
+} from '../schemas/onemoney-response.schema';
 import type {
   CreateCustomerRequest,
   CustomerResponse,
@@ -12,13 +18,15 @@ export const createCustomer = async (
   body: CreateCustomerRequest,
   idempotencyKey: string
 ): Promise<CustomerResponse> => {
-  return oneMoneyClient.post('/v1/customers', body, idempotencyKey);
+  const data = await oneMoneyClient.post('/v1/customers', body, idempotencyKey);
+  return validateUpstreamResponse<CustomerResponse>(data, customerResponseSchema, 'createCustomer');
 };
 
 export const getCustomer = async (
   customerId: string
 ): Promise<CustomerResponse> => {
-  return oneMoneyClient.get(`/v1/customers/${customerId}`);
+  const data = await oneMoneyClient.get(`/v1/customers/${customerId}`);
+  return validateUpstreamResponse<CustomerResponse>(data, customerResponseSchema, 'getCustomer');
 };
 
 export const updateCustomer = async (
@@ -26,19 +34,22 @@ export const updateCustomer = async (
   body: UpdateCustomerRequest,
   idempotencyKey: string
 ): Promise<CustomerResponse> => {
-  return oneMoneyClient.put(`/v1/customers/${customerId}`, body, idempotencyKey);
+  const data = await oneMoneyClient.put(`/v1/customers/${customerId}`, body, idempotencyKey);
+  return validateUpstreamResponse<CustomerResponse>(data, customerResponseSchema, 'updateCustomer');
 };
 
 export const createTosLink = async (
   body: CreateTosLinkRequest,
   idempotencyKey: string
 ): Promise<CreateTosLinkResponse> => {
-  return oneMoneyClient.post('/v1/customers/tos_links', body, idempotencyKey);
+  const data = await oneMoneyClient.post('/v1/customers/tos_links', body, idempotencyKey);
+  return validateUpstreamResponse<CreateTosLinkResponse>(data, createTosLinkResponseSchema, 'createTosLink');
 };
 
 export const signTos = async (
   sessionToken: string,
   idempotencyKey: string
 ): Promise<SignTosResponse> => {
-  return oneMoneyClient.post(`/v1/customers/tos_links/${sessionToken}/sign`, {}, idempotencyKey);
+  const data = await oneMoneyClient.post(`/v1/customers/tos_links/${sessionToken}/sign`, {}, idempotencyKey);
+  return validateUpstreamResponse<SignTosResponse>(data, signTosResponseSchema, 'signTos');
 };
