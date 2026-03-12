@@ -55,7 +55,7 @@ class OneMoneyClient {
         headers,
         data: options?.body,
         params: options?.query,
-        timeout: 120000,
+        timeout: 30000,
       });
 
       return response.data as T;
