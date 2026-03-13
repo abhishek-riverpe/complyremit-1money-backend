@@ -17,10 +17,10 @@ export interface WebhookContext {
 }
 
 const KYB_EVENT_TO_STATUS: Record<string, string> = {
-  'Customers.kyb.pending': 'PENDING',
-  'Customers.kyb.additional_info_required': 'PENDING_RESPONSE',
-  'Customers.kyb.completed': 'APPROVED',
-  'Customers.kyb.rejected': 'REJECTED',
+  'kyb.pending': 'PENDING',
+  'kyb.additional_info_required': 'PENDING_RESPONSE',
+  'kyb.completed': 'APPROVED',
+  'kyb.rejected': 'REJECTED',
 };
 
 export const processWebhookEvent = async (
