@@ -1,8 +1,10 @@
 import type { Request, Response } from 'express';
 import type { AuthRequest } from '../middlewares/auth';
 import { autoConversionService, activityLogService } from '../services';
+import { autoConversionRepository } from '../repositories';
 import APIResponse from '../lib/APIResponse';
 import { ActivityAction, ActivityCategory } from '../types/activity-log.types';
+import logger from '../lib/logger';
 
 export const createRule = async (
   req: Request,
@@ -15,6 +17,23 @@ export const createRule = async (
     req.body,
     idempotencyKey,
   );
+
+  // Save rule to local DB
+  try {
+    await autoConversionRepository.createRule({
+      userId: authReq.dbUser!.id,
+      oneMoneyRuleId: result.rule_id,
+      oneMoneyCustomerId: result.customer_id,
+      status: result.status,
+      sourceAsset: result.source_asset,
+      sourceNetwork: result.source_network,
+      destinationAsset: result.destination_asset,
+      destinationNetwork: result.destination_network,
+    });
+  } catch (err) {
+    // Log but don't fail — webhook will sync if this races
+    logger.error('Failed to save auto-conversion rule locally', { error: err, ruleId: result.rule_id });
+  }
 
   activityLogService.log({
     context: activityLogService.buildContext(authReq),
@@ -101,6 +120,13 @@ export const deleteRule = async (
     ruleId,
     idempotencyKey,
   );
+
+  // Mark rule as deleted locally
+  try {
+    await autoConversionRepository.updateStatusByOneMoneyRuleId(ruleId, 'deleted');
+  } catch (err) {
+    logger.error('Failed to update auto-conversion rule status locally', { error: err, ruleId });
+  }
 
   activityLogService.log({
     context: activityLogService.buildContext(authReq),
