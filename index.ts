@@ -79,7 +79,14 @@ app.get("/health", async (req, res) => {
 });
 
 // 10mb body limit for base64-encoded documents in KYB applications
-app.use(express.json({ limit: '10mb' }));
+// Capture raw body for webhook signature validation.
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, _res, buf) => {
+    // Keep raw body as string for signature validation (required for 1Money webhooks)
+    (req as any).rawBody = buf.toString();
+  },
+}));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(globalLimiter);
@@ -97,6 +104,7 @@ app.use(errorHandler);
 const requiredEnvVars = [
   'ONEMONEY_API_BASE_URL',
   'ONEMONEY_BEARER_TOKEN',
+  'ONEMONEY_WEBHOOK_SECRET',
   'CLERK_SECRET_KEY',
   'R2_ACCOUNT_ID',
   'R2_ACCESS_KEY_ID',

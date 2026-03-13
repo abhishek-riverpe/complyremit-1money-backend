@@ -249,3 +249,24 @@ model IdempotencyKey {
   @@index([expiresAt])
   @@map("idempotency_keys")
 }
+
+model WebhookEvent {
+  id          String               @id @default(uuid())
+  eventId     String               @unique @map("event_id")
+  deliveryId  String?              @map("delivery_id")
+  eventName   String               @map("event_name")
+  payload     Json
+  status      WebhookEventStatus   @default(PENDING)
+  error       String?
+  attempts    Int                  @default(0)
+  receivedAt  DateTime             @default(now()) @map("received_at")
+  processedAt DateTime?            @map("processed_at")
+
+  @@map("webhook_events")
+}
+
+enum WebhookEventStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
