@@ -133,10 +133,11 @@ model User {
   signedAgreementId String? @map("signed_agreement_id")
 
   // Relations
-  associatedPersons AssociatedPerson[]
-  documents         BusinessDocument[]
-  activityLogs      ActivityLog[]
-  idempotencyKeys   IdempotencyKey[]
+  associatedPersons   AssociatedPerson[]
+  documents           BusinessDocument[]
+  activityLogs        ActivityLog[]
+  idempotencyKeys     IdempotencyKey[]
+  autoConversionRules AutoConversionRule[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -248,4 +249,60 @@ model IdempotencyKey {
   @@unique([userId, key, operation])
   @@index([expiresAt])
   @@map("idempotency_keys")
+}
+
+model WebhookEvent {
+  id          String               @id @default(uuid())
+  eventId     String               @unique @map("event_id")
+  deliveryId  String?              @map("delivery_id")
+  eventName   String               @map("event_name")
+  payload     Json
+  status      WebhookEventStatus   @default(PENDING)
+  error       String?
+  attempts    Int                  @default(0)
+  receivedAt  DateTime             @default(now()) @map("received_at")
+  processedAt DateTime?            @map("processed_at")
+
+  @@map("webhook_events")
+}
+
+enum WebhookEventStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model AutoConversionRule {
+  id                  String   @id @default(uuid())
+  userId              String   @map("user_id")
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  oneMoneyRuleId      String   @unique @map("onemoney_rule_id")
+  oneMoneyCustomerId  String   @map("onemoney_customer_id")
+  status              String   @default("active")
+  sourceAsset         String   @map("source_asset")
+  sourceNetwork       String   @map("source_network")
+  destinationAsset    String   @map("destination_asset")
+  destinationNetwork  String?  @map("destination_network")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  orders AutoConversionOrder[]
+
+  @@map("auto_conversion_rules")
+}
+
+model AutoConversionOrder {
+  id              String   @id @default(uuid())
+  ruleId          String   @map("rule_id")
+  rule            AutoConversionRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  oneMoneyOrderId String   @unique @map("onemoney_order_id")
+  status          String   @default("pending")
+  failureReason   String?  @map("failure_reason")
+  payload         Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("auto_conversion_orders")
 }

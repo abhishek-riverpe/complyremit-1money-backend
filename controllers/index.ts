@@ -6,3 +6,4 @@ export * as storageController from './storage.controller';
 export * as autoConversionController from './auto-conversion.controller';
 export * as activityLogController from './activity-log.controller';
 export * as associatedPersonController from './associated-person.controller';
+export * as webhookController from './webhook.controller';

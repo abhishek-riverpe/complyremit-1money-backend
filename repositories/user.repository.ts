@@ -37,6 +37,19 @@ const userRepository = {
     });
   },
 
+  findByOneMoneyCustomerId: async (oneMoneyCustomerId: string) => {
+    return prisma.user.findUnique({
+      where: { oneMoneyCustomerId },
+      include: includeRelations,
+    });
+  },
+
+  updateKybStatusByCustomerId: async (oneMoneyCustomerId: string, status: string) => {
+    return prisma.user.update({
+      where: { oneMoneyCustomerId },
+      data: { oneMoneyKybStatus: status },
+    });
+  },
 };
 
 export default userRepository;
