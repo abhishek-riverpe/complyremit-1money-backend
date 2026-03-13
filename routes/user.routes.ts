@@ -4,17 +4,18 @@ import validate from '../middlewares/validate';
 import requireIdempotencyKey from '../middlewares/require-idempotency-key';
 import dbUser from '../middlewares/db-user';
 import requireCustomer from '../middlewares/require-customer';
-import { createUserSchema, createCustomerSchema, updateCustomerSchema, createTosLinkSchema } from '../schemas';
+import { createCustomerSchema, updateCustomerSchema, createTosLinkSchema, sessionTokenParamSchema } from '../schemas';
+import { kybLimiter } from '../middlewares/rate-limit';
 import associatedPersonRoutes from './associated-person.routes';
 
 const router = Router();
 
 // User profile routes
-router.post('/', validate(createUserSchema), userController.createUser);
-router.get('/business', userController.getUser);
+router.post('/', userController.createUser);
+router.get('/business', dbUser, userController.getUser);
 
 // KYB routes (need dbUser; GET/PUT also need customerId)
-router.post('/business/kyb', dbUser, requireIdempotencyKey, validate(createCustomerSchema), kybController.createCustomer);
+router.post('/business/kyb', dbUser, kybLimiter, requireIdempotencyKey, validate(createCustomerSchema), kybController.createCustomer);
 router.get('/business/kyb', dbUser, requireCustomer, kybController.getCustomer);
 router.put('/business/kyb', dbUser, requireCustomer, requireIdempotencyKey, validate(updateCustomerSchema), kybController.updateCustomer);
 
@@ -23,6 +24,6 @@ router.use('/business/kyb/associated-persons', dbUser, requireCustomer, associat
 
 // TOS routes (1Money TOS signing - part of KYB flow, need dbUser)
 router.post('/business/kyb/tos/link', dbUser, requireIdempotencyKey, validate(createTosLinkSchema), kybController.createTosLink);
-router.post('/business/kyb/tos/:sessionToken/sign', dbUser, requireIdempotencyKey, kybController.signTos);
+router.post('/business/kyb/tos/:sessionToken/sign', dbUser, validate(sessionTokenParamSchema, 'params'), requireIdempotencyKey, kybController.signTos);
 
 export default router;

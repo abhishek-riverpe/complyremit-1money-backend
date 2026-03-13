@@ -3,7 +3,7 @@ import type { AuthRequest } from '../middlewares/auth';
 import APIResponse from '../lib/APIResponse';
 import AppError from '../lib/AppError';
 import { oneMoneyCustomerService as customerService, activityLogService } from '../services';
-import type { CreateCustomerRequest, UpdateCustomerRequest, CustomerResponse } from '../types/onemoney-customer.types';
+import type { CreateCustomerRequest, UpdateCustomerRequest } from '../types/onemoney-customer.types';
 import { persistBusinessData } from '../services/business-persistence.service';
 import userRepository from '../repositories/user.repository';
 import type { UpdateBusinessData } from '../types/user.types';
@@ -29,7 +29,7 @@ export const createCustomer = async (
   const apiBody = await convertFilesToBase64(body);
 
   // Create customer in 1Money API first (fail-fast before any DB writes)
-  const result = await customerService.createCustomer(apiBody, idempotencyKey) as CustomerResponse;
+  const result = await customerService.createCustomer(apiBody, idempotencyKey);
 
   // Only persist to DB after API succeeds — single atomic transaction
   await persistBusinessData(authReq.dbUser!.id, authReq.user.clerkUserId, body, {
@@ -37,7 +37,7 @@ export const createCustomer = async (
     oneMoneyKybStatus: result.status,
   }, result.associated_persons);
 
-  activityLogService.log({
+  await activityLogService.logCritical({
     context: activityLogService.buildContext(authReq),
     action: ActivityAction.KYB_SUBMITTED,
     category: ActivityCategory.KYB,
@@ -78,7 +78,6 @@ export const updateCustomer = async (
 
   const idempotencyKey = req.headers['idempotency-key'] as string;
   const body = req.body as UpdateCustomerRequest;
-  console.log('updateCustomer - tax_id:', body.tax_id, 'tax_type:', body.tax_type);
   const result = await customerService.updateCustomer(
     authReq.customerId!,
     body,
@@ -128,10 +127,10 @@ export const createTosLink = async (
 ): Promise<void> => {
   const authReq = req as AuthRequest;
   const idempotencyKey = req.headers['idempotency-key'] as string;
-  const result = await customerService.createTosLink(req.body, idempotencyKey) as unknown as Record<string, unknown>;
+  const result = await customerService.createTosLink(req.body, idempotencyKey);
   logger.info('TOS link created', {
-    url: result?.url,
-    sessionToken: result?.session_token,
+    url: result.url,
+    sessionToken: result.session_token,
     callbackUrl: (req.body as Record<string, unknown>)?.accept_redirect_url,
   });
 
@@ -154,7 +153,7 @@ export const signTos = async (
   const idempotencyKey = req.headers['idempotency-key'] as string;
   const result = await customerService.signTos(sessionToken, idempotencyKey);
 
-  activityLogService.log({
+  await activityLogService.logCritical({
     context: activityLogService.buildContext(authReq),
     action: ActivityAction.TOS_SIGNED,
     category: ActivityCategory.KYB,

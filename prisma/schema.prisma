@@ -136,6 +136,7 @@ model User {
   associatedPersons AssociatedPerson[]
   documents         BusinessDocument[]
   activityLogs      ActivityLog[]
+  idempotencyKeys   IdempotencyKey[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -184,30 +185,17 @@ model AssociatedPerson {
   residentialAddressSubdivision String? @map("residential_address_subdivision")
   residentialAddressPostalCode  String? @map("residential_address_postal_code")
 
-  // Relations
-  identifyingDocuments IdentifyingDocument[]
+  // Identifying document
+  docType                   String? @map("doc_type")
+  docIssuingCountry         String? @map("doc_issuing_country")
+  docNationalIdentityNumber String? @map("doc_national_identity_number")
+  docImageFrontUrl          String? @map("doc_image_front_url")
+  docImageBackUrl           String? @map("doc_image_back_url")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("associated_persons")
-}
-
-model IdentifyingDocument {
-  id                 String @id @default(uuid())
-  associatedPersonId String @map("associated_person_id")
-  associatedPerson   AssociatedPerson @relation(fields: [associatedPersonId], references: [id], onDelete: Cascade)
-
-  type                   String
-  issuingCountry         String  @map("issuing_country")
-  nationalIdentityNumber String  @map("national_identity_number")
-  imageFrontUrl          String? @map("image_front_url")
-  imageBackUrl           String? @map("image_back_url")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("identifying_documents")
 }
 
 model ActivityLog {
@@ -240,4 +228,24 @@ model BusinessDocument {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("business_documents")
+}
+
+model IdempotencyKey {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  key        String
+  operation  String
+  bodyHash   String   @map("body_hash")
+  status     String   @default("PENDING")
+  statusCode Int?     @map("status_code")
+  response   Json?
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key, operation])
+  @@index([expiresAt])
+  @@map("idempotency_keys")
 }

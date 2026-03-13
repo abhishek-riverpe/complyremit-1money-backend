@@ -63,15 +63,11 @@ export interface CreateAssociatedPersonData {
   residentialAddressCountry: string;
   residentialAddressSubdivision?: string;
   residentialAddressPostalCode?: string;
-  identifyingDocuments: CreateIdentifyingDocumentData[];
-}
-
-export interface CreateIdentifyingDocumentData {
-  type: string;
-  issuingCountry: string;
-  nationalIdentityNumber: string;
-  imageFrontUrl?: string;
-  imageBackUrl?: string;
+  docType?: string;
+  docIssuingCountry?: string;
+  docNationalIdentityNumber?: string;
+  docImageFrontUrl?: string;
+  docImageBackUrl?: string;
 }
 
 export interface CreateBusinessDocumentData {

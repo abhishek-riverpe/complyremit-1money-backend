@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import type { AuthRequest } from '../middlewares/auth';
 import APIResponse from '../lib/APIResponse';
+import { sanitizeUserResponse } from '../lib/response-serializer';
 import { userService, activityLogService } from '../services';
 import { ActivityAction, ActivityCategory } from '../types/activity-log.types';
 
@@ -23,7 +24,7 @@ export const createUser = async (
     detail: 'User account created',
   });
 
-  APIResponse.created(res, 'User created successfully', user);
+  APIResponse.created(res, 'User created successfully', sanitizeUserResponse(user as Record<string, unknown>));
 };
 
 export const getUser = async (
@@ -40,5 +41,5 @@ export const getUser = async (
     detail: 'Business data viewed',
   });
 
-  APIResponse.success(res, 'User fetched successfully', user);
+  APIResponse.success(res, 'User fetched successfully', sanitizeUserResponse(user as Record<string, unknown>));
 };

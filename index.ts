@@ -14,10 +14,22 @@ dotenv.config();
 
 const app = express();
 app.set('trust proxy', 1);
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.FRONTEND_URL
+    : true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'x-auth-token', 'idempotency-key'],
+}));
 
 app.use(
   helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
+    },
     xssFilter: true,
     frameguard: { action: "deny" },
     hsts: {
@@ -31,6 +43,11 @@ app.use(
     referrerPolicy: { policy: "no-referrer" },
   })
 );
+
+app.use((_req, res, next) => {
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  next();
+});
 
 // Global request timeout (30 seconds)
 app.use((req, res, next) => {
@@ -67,8 +84,33 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(globalLimiter);
 
+// Prevent caching of sensitive API responses
+app.use('/api', (_req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  next();
+});
+
 app.use('/api', auth, router);
 app.use(errorHandler);
+
+const requiredEnvVars = [
+  'ONEMONEY_API_BASE_URL',
+  'ONEMONEY_BEARER_TOKEN',
+  'CLERK_SECRET_KEY',
+  'R2_ACCOUNT_ID',
+  'R2_ACCESS_KEY_ID',
+  'R2_SECRET_ACCESS_KEY',
+  'R2_BUCKET_NAME',
+  'FRONTEND_URL',
+  'FIELD_ENCRYPTION_KEY',
+];
+
+for (const key of requiredEnvVars) {
+  if (!process.env[key]) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+}
 
 const port = process.env.PORT || 5000;
 

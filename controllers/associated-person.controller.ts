@@ -43,13 +43,11 @@ const mapPersonToDbData = (person: AssociatedPerson, oneMoneyId: string) => ({
   residentialAddressCountry: person.residential_address.country,
   residentialAddressSubdivision: person.residential_address.subdivision,
   residentialAddressPostalCode: person.residential_address.postal_code,
-  identifyingDocuments: person.identifying_information.map((doc) => ({
-    type: doc.type,
-    issuingCountry: doc.issuing_country,
-    nationalIdentityNumber: doc.national_identity_number,
-    imageFrontUrl: doc.image_front,
-    imageBackUrl: doc.image_back,
-  })),
+  docType: person.identifying_information[0]?.type,
+  docIssuingCountry: person.identifying_information[0]?.issuing_country,
+  docNationalIdentityNumber: person.identifying_information[0]?.national_identity_number,
+  docImageFrontUrl: person.identifying_information[0]?.image_front,
+  docImageBackUrl: person.identifying_information[0]?.image_back,
 });
 
 export const createAssociatedPerson = async (
@@ -71,9 +69,9 @@ export const createAssociatedPerson = async (
   );
 
   const dbData = mapPersonToDbData(body, result.associated_person_id);
-  await associatedPersonRepository.createWithDocuments(authReq.dbUser!.id, dbData);
+  await associatedPersonRepository.create(authReq.dbUser!.id, dbData);
 
-  activityLogService.log({
+  await activityLogService.logCritical({
     context: activityLogService.buildContext(authReq),
     action: ActivityAction.ASSOCIATED_PERSON_CREATED,
     category: ActivityCategory.KYB,
@@ -151,6 +149,9 @@ export const updateAssociatedPerson = async (
   );
 
   const localRecord = await associatedPersonRepository.findByOneMoneyId(associatedPersonId);
+  if (localRecord && localRecord.userId !== authReq.dbUser!.id) {
+    throw new AppError(403, 'Access denied to this associated person');
+  }
   if (localRecord) {
     const updateData: Record<string, unknown> = {};
     if (body.first_name !== undefined) updateData.firstName = body.first_name;
@@ -179,21 +180,16 @@ export const updateAssociatedPerson = async (
       updateData.residentialAddressPostalCode = body.residential_address.postal_code;
     }
 
-    const identifyingDocuments = body.identifying_information
-      ? body.identifying_information.map((doc) => ({
-          type: doc.type,
-          issuingCountry: doc.issuing_country,
-          nationalIdentityNumber: doc.national_identity_number,
-          imageFrontUrl: doc.image_front,
-          imageBackUrl: doc.image_back,
-        }))
-      : undefined;
+    if (body.identifying_information?.[0]) {
+      const doc = body.identifying_information[0];
+      updateData.docType = doc.type;
+      updateData.docIssuingCountry = doc.issuing_country;
+      updateData.docNationalIdentityNumber = doc.national_identity_number;
+      updateData.docImageFrontUrl = doc.image_front;
+      updateData.docImageBackUrl = doc.image_back;
+    }
 
-    await associatedPersonRepository.updateWithDocuments(
-      localRecord.id,
-      updateData,
-      identifyingDocuments,
-    );
+    await associatedPersonRepository.update(localRecord.id, updateData);
   }
 
   activityLogService.log({
@@ -224,11 +220,14 @@ export const deleteAssociatedPerson = async (
   );
 
   const localRecord = await associatedPersonRepository.findByOneMoneyId(associatedPersonId);
+  if (localRecord && localRecord.userId !== authReq.dbUser!.id) {
+    throw new AppError(403, 'Access denied to this associated person');
+  }
   if (localRecord) {
     await associatedPersonRepository.deleteById(localRecord.id);
   }
 
-  activityLogService.log({
+  await activityLogService.logCritical({
     context: activityLogService.buildContext(authReq),
     action: ActivityAction.ASSOCIATED_PERSON_DELETED,
     category: ActivityCategory.KYB,

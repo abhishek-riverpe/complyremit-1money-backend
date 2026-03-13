@@ -69,22 +69,23 @@ export const fetchAsBase64 = async (key: string): Promise<string> => {
   const bytes = await response.Body!.transformToByteArray();
   const base64 = Buffer.from(bytes).toString('base64');
 
-  const contentType = response.ContentType ?? mimeFromKey(key);
+  const contentType = response.ContentType ?? contentTypeFromKey(key);
   return `data:${contentType};base64,${base64}`;
 };
 
-const MIME_TYPES: Record<string, string> = {
+const CONTENT_TYPES: Record<string, string> = {
   '.pdf': 'application/pdf',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
-  '.gif': 'image/gif',
-  '.webp': 'image/webp',
+  '.csv': 'text/csv',
+  '.xls': 'application/vnd.ms-excel',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 };
 
-function mimeFromKey(key: string): string {
+function contentTypeFromKey(key: string): string {
   const ext = key.substring(key.lastIndexOf('.')).toLowerCase();
-  return MIME_TYPES[ext] ?? 'application/octet-stream';
+  return CONTENT_TYPES[ext] ?? 'application/octet-stream';
 }
 
 type DocumentCategory = 'business_document' | 'id_front' | 'id_back' | 'poa';

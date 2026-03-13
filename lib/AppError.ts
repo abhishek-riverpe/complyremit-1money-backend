@@ -34,6 +34,10 @@ class AppError extends Error {
   static internal(message: string): AppError {
     return new AppError(500, message);
   }
+
+  static badGateway(message: string): AppError {
+    return new AppError(502, message);
+  }
 }
 
 export default AppError;

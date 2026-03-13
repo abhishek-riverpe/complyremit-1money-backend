@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { associatedPersonController } from '../controllers';
 import validate from '../middlewares/validate';
 import requireIdempotencyKey from '../middlewares/require-idempotency-key';
-import { createAssociatedPersonSchema, updateAssociatedPersonSchema } from '../schemas';
+import { createAssociatedPersonSchema, updateAssociatedPersonSchema, associatedPersonIdParamSchema } from '../schemas';
 
 const router = Router();
 
@@ -15,10 +15,11 @@ router.post(
 
 router.get('/', associatedPersonController.listAssociatedPersons);
 
-router.get('/:associatedPersonId', associatedPersonController.getAssociatedPerson);
+router.get('/:associatedPersonId', validate(associatedPersonIdParamSchema, 'params'), associatedPersonController.getAssociatedPerson);
 
 router.put(
   '/:associatedPersonId',
+  validate(associatedPersonIdParamSchema, 'params'),
   requireIdempotencyKey,
   validate(updateAssociatedPersonSchema),
   associatedPersonController.updateAssociatedPerson,
@@ -26,6 +27,7 @@ router.put(
 
 router.delete(
   '/:associatedPersonId',
+  validate(associatedPersonIdParamSchema, 'params'),
   requireIdempotencyKey,
   associatedPersonController.deleteAssociatedPerson,
 );

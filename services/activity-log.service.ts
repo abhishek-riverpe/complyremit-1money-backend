@@ -18,6 +18,18 @@ export const buildContext = (source: {
   };
 };
 
+export const logCritical = async (params: LogActivityParams): Promise<void> => {
+  await activityLogRepository.create({
+    userId: params.context.userId,
+    action: params.action,
+    category: params.category,
+    detail: params.detail,
+    metadata: params.metadata as Prisma.InputJsonValue | undefined,
+    ipAddress: params.context.ipAddress,
+    userAgent: params.context.userAgent,
+  });
+};
+
 export const log = (params: LogActivityParams): void => {
   setImmediate(async () => {
     try {
